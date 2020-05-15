@@ -4,11 +4,30 @@ using UnityEngine;
 using UnityEngine.UI;
 
 //单个自定义UI 支持圆形、矩形、圆角矩形
-//TODO 添加UV坐标用以支持贴图
 public class CustomUIMesh : MaskableGraphic
 {
+    //支持的几何图形
+    public enum UISHAPE
+    {
+        Circle, Rectangle, RoundRectangle
+    }
+
+    public UISHAPE uiShape = UISHAPE.Circle;
+
+    //圆形细分数
+    [Range(3, 100)]
+    public int circleNum = 20;
+    //矩形圆角细分数
+    [Range(1, 100)]
+    public int roundNum = 5;
+    //矩形圆角半径
+    [Range(0.0f, 100.0f)]
+    public float roundRadius = 3.0f;
+
+    //重载纹理贴图
     [SerializeField]
     Texture m_Texture;
+    
     public Texture MainTexture
     {
         get
@@ -31,22 +50,6 @@ public class CustomUIMesh : MaskableGraphic
             return m_Texture == null ? s_WhiteTexture : m_Texture;
         }
     }
-    public enum UISHAPE
-    {
-        Circle, Rectangle, RoundRectangle
-    }
-
-    public UISHAPE uiShape = UISHAPE.Circle;
-
-    //圆形细分数
-    [Range(3, 100)]
-    public int circleNum = 20;
-    //矩形圆角细分数
-    [Range(1, 100)]
-    public int roundNum = 5;
-    //矩形圆角半径
-    [Range(0.0f, 100.0f)]
-    public float roundRadius = 3.0f;
 
     protected override void OnPopulateMesh(VertexHelper vh)
     {
@@ -232,4 +235,5 @@ public class CustomUIMesh : MaskableGraphic
         SetVerticesDirty();
         SetMaterialDirty();
     }
+    
 }
