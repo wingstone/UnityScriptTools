@@ -59,7 +59,7 @@
                 lightmapUV = i.ambientOrLightmapUV.xy;
                 // Baked lightmaps
                 half4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV.xy);
-                ambient = DecodeLightmap(bakedColorTex);
+                ambient = bakedColorTex.rgb*2;
                 // #endif
 
                 #ifdef UNITY_COLORSPACE_GAMMA

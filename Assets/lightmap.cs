@@ -23,7 +23,7 @@ public class lightmap : MonoBehaviour
     static void processlightmap()
     {
         string lightmappath = "Assets/11/Lightmap-0_comp_light.exr";
-        string lightmappath1 = "Assets/11/Lightmap-0_comp_light1.exr";
+        string lightmappath1 = "Assets/11/Lightmap-0_comp_light1.tga";
         string shadowmaskpath = "Assets/11/Lightmap-0_comp_shadowmask.png";
 
         Texture2D lightmap = AssetDatabase.LoadAssetAtPath(lightmappath, typeof(Texture2D)) as Texture2D;
@@ -34,16 +34,16 @@ public class lightmap : MonoBehaviour
 
         for (int i = 0; i < shadowcolor.Length; i++)
         {
-            lightcolor[i].r = lightcolor[i].r*2;
-            lightcolor[i].g = lightcolor[i].g*2;
-            lightcolor[i].b = lightcolor[i].b*2;
+            lightcolor[i].r = lightcolor[i].r;
+            lightcolor[i].g = lightcolor[i].g;
+            lightcolor[i].b = lightcolor[i].b;
             lightcolor[i].a = shadowcolor[i].r;
         }
 
         Texture2D lightmapnew = new Texture2D(lightmap.width, lightmap.height, TextureFormat.RGBAHalf, true, true);
         lightmapnew.SetPixels(lightcolor);
 
-        File.WriteAllBytes(lightmappath1, lightmapnew.EncodeToEXR());
+        File.WriteAllBytes(lightmappath1, lightmapnew.EncodeToTGA());
 
         AssetDatabase.Refresh();
         // SceneAsset scene =  EditorSceneManager.GetActiveScene();
