@@ -56,9 +56,9 @@ public class MeshPainterEditor : Editor
     {
         if (isPaint)
         {
+            SceneView.RepaintAll();
             Painter();
         }
-
     }
 
     void OnEnable()
@@ -99,11 +99,6 @@ public class MeshPainterEditor : Editor
             ShowStartStopButton();
             ShowTextures();
         }
-    }
-
-    private void Update()
-    {
-        SceneView.RepaintAll();
     }
 
     #endregion
