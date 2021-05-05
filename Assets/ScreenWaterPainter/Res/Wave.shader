@@ -89,7 +89,7 @@
                 float4 right = tex2D(_MainTex, i.uv + float2(_MainTex_TexelSize.x, 0));
                 float4 center = tex2D(_MainTex, i.uv);
 
-                float4 col = 0.25 * (up + bottom + left + right + center);
+                float4 col = 0.2 * (up + bottom + left + right + center);
                 return col;
             }
             ENDCG
