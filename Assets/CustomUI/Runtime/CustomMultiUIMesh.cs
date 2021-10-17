@@ -161,7 +161,7 @@ public class CustomMultiUIMesh : MaskableGraphic
                     }
                     for (int i = haveVertNum + shapeVertNum; i < haveVertNum + shapeVertNum + roundNum; i++)
                     {
-                        vh.AddTriangle(haveVertNum, i, i + 1);
+                        vh.AddTriangle(haveVertNum, i+1, i);
                     }
                     shapeVertNum += roundNum + 1;
 
@@ -191,7 +191,7 @@ public class CustomMultiUIMesh : MaskableGraphic
                     }
                     for (int i = haveVertNum + shapeVertNum; i < haveVertNum + shapeVertNum + roundNum; i++)
                     {
-                        vh.AddTriangle(haveVertNum + 2, i, i + 1);
+                        vh.AddTriangle(haveVertNum + 2, i+1, i);
                     }
                     shapeVertNum += roundNum + 1;
 

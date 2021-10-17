@@ -27,7 +27,7 @@ public class CustomUIMesh : MaskableGraphic
     //重载纹理贴图
     [SerializeField]
     Texture m_Texture;
-    
+
     public Texture MainTexture
     {
         get
@@ -120,7 +120,7 @@ public class CustomUIMesh : MaskableGraphic
             }
             for (int i = veRTNum; i < veRTNum + roundNum; i++)
             {
-                vh.AddTriangle(0, i, i + 1);
+                vh.AddTriangle(0, i + 1, i);
             }
             veRTNum += roundNum + 1;
 
@@ -150,7 +150,7 @@ public class CustomUIMesh : MaskableGraphic
             }
             for (int i = veRTNum; i < veRTNum + roundNum; i++)
             {
-                vh.AddTriangle(2, i, i + 1);
+                vh.AddTriangle(2, i + 1, i);
             }
             veRTNum += roundNum + 1;
 
@@ -235,5 +235,5 @@ public class CustomUIMesh : MaskableGraphic
         SetVerticesDirty();
         SetMaterialDirty();
     }
-    
+
 }
