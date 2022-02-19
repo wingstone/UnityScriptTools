@@ -16,6 +16,7 @@ public enum EnumTest
 public class CustomComponentEditor : Editor
 {
     SerializedProperty pointProperty;
+    SerializedProperty factor;
 
     float tmp1 = 0;
     int tmp2 = 0;
@@ -52,6 +53,7 @@ public class CustomComponentEditor : Editor
     private void OnEnable()
     {
         pointProperty = serializedObject.FindProperty("point");
+        factor = serializedObject.FindProperty("factor");
 
         m_ShowExtraFields = new AnimBool(true);
         m_ShowExtraFields.valueChanged.AddListener(new UnityAction(base.Repaint));
@@ -63,6 +65,9 @@ public class CustomComponentEditor : Editor
 
         serializedObject.Update();
         EditorGUILayout.PropertyField(pointProperty);
+        EditorGUILayout.PropertyField(factor);
+
+        factor.floatValue = PowerSlider("Power Slider:", 0.1f, 1000f, 10f, factor.floatValue);
         serializedObject.ApplyModifiedProperties();
 
         EditorGUILayout.BeginVertical();
@@ -101,7 +106,7 @@ public class CustomComponentEditor : Editor
 
 
         textAsset = EditorGUILayout.ObjectField("text field", textAsset, typeof(TextAsset), true) as TextAsset;
-        using (var h = new EditorGUILayout.HorizontalScope())
+        using (var h = new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
         {
             using (var scrollView = new EditorGUILayout.ScrollViewScope(scrollPos, GUILayout.Width(100), GUILayout.Height(100)))
             {
@@ -144,9 +149,17 @@ public class CustomComponentEditor : Editor
                         });
 
         EditorGUILayout.EndVertical();
-
     }
 
+    // pow must > 0
+    float PowerSlider(string label, float min, float max, float pow, float value)
+    {
+        float powmin = Mathf.Log(min, pow);
+        float powmax = Mathf.Log(max, pow);
+        float powValue = Mathf.Log(value, pow);
+        powValue = EditorGUILayout.Slider(label, powValue, powmin, powmax);
+        return Mathf.Pow(pow, powValue);
+    }
 
     public static int ShaderKeywordRadioGeneric(string header, int index, GUIContent[] labels)
     {

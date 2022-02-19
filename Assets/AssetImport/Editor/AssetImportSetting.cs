@@ -13,7 +13,7 @@ public class AssetImportSetting : AssetPostprocessor
         modelImporter.importLights = false;
         modelImporter.importCameras = false;
         modelImporter.importConstraints = false;
-        modelImporter.isReadable = false;
+        // modelImporter.isReadable = false;
     }
 
     // texture

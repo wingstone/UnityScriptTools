@@ -6,4 +6,7 @@ public class CustomComponent : MonoBehaviour
 {
     [SerializeField]
     Vector3 point;
+    
+    [SerializeField]
+    public float factor = 100;
 }
