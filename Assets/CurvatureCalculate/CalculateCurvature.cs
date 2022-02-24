@@ -1,14 +1,187 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Runtime.InteropServices;
 
-public class CalculateDirectionalCurvature : MonoBehaviour
+/*
+ * C++ code
+dllmain.h
+#pragma once
+
+extern "C" __declspec(dllexport) void __stdcall CalculateDirectionalCurvature(int nv,
+	float* vertices_x,
+	float* vertices_y,
+	float* vertices_z,
+	float* dir1_x,
+	float* dir1_y,
+	float* dir1_z,
+	float* dir2_x,
+	float* dir2_y,
+	float* dir2_z,
+	float* curvature0,
+	float* curvature1,
+	int nf,
+	int* triangles
+);
+
+dllmain.cpp
+#include "dllmain.h"
+#include "include/TriMesh.h"
+
+using namespace trimesh;
+
+__declspec(dllexport) void __stdcall CalculateDirectionalCurvature(int nv,
+	float* vertices_x,
+	float* vertices_y,
+	float* vertices_z,
+	float* dir1_x,
+	float* dir1_y,
+	float* dir1_z,
+	float* dir2_x,
+	float* dir2_y,
+	float* dir2_z,
+	float* curvature0,
+	float* curvature1,
+	int nf,
+	int* triangles
+)
 {
+	TriMesh* mesh = new TriMesh();
+	for (int i = 0; i < nv; i++)
+	{
+		mesh->vertices.push_back(point(vertices_x[i], vertices_y[i], vertices_z[i]));
+	}
+	for (int i = 0; i < nf; i++)
+	{
+		mesh->faces.push_back(TriMesh::Face(triangles[i * 3], triangles[i * 3 + 1], triangles[i * 3 + 2]));
+	}
+
+	mesh->need_curvatures();
+	for (int i = 0; i < nv; i++)
+	{
+		curvature0[i] = mesh->curv1[i];
+		curvature1[i] = mesh->curv2[i];
+	}
+
+	for (int i = 0; i < nv; i++)
+	{
+		dir1_x[i] = mesh->pdir1[i].x;
+		dir1_y[i] = mesh->pdir1[i].y;
+		dir1_z[i] = mesh->pdir1[i].z;
+	}
+
+	for (int i = 0; i < nv; i++)
+	{
+		dir2_x[i] = mesh->pdir2[i].x;
+		dir2_y[i] = mesh->pdir2[i].y;
+		dir2_z[i] = mesh->pdir2[i].z;
+	}
+
+	delete mesh;
+}
+*/
+
+public class CalculateCurvature : MonoBehaviour
+{
+
+    // get two main direction and two curvature
+    [DllImport("Assets/CurvatureCalculate/Plugins/TrimeshDll.dll", EntryPoint = "CalculateDirectionalCurvature")]
+    public static extern void CalculateDirectionalCurvature(int nv,
+    float[] vertices_x,
+    float[] vertices_y,
+    float[] vertices_z,
+    [Out][MarshalAs(UnmanagedType.LPArray)] float[] dir1_x,
+    [Out][MarshalAs(UnmanagedType.LPArray)] float[] dir1_y,
+    [Out][MarshalAs(UnmanagedType.LPArray)] float[] dir1_z,
+    [Out][MarshalAs(UnmanagedType.LPArray)] float[] dir2_x,
+    [Out][MarshalAs(UnmanagedType.LPArray)] float[] dir2_y,
+    [Out][MarshalAs(UnmanagedType.LPArray)] float[] dir2_z,
+    [Out][MarshalAs(UnmanagedType.LPArray)] float[] curvature0,
+    [Out][MarshalAs(UnmanagedType.LPArray)] float[] curvature1,
+    int nf,
+    int[] triangles
+    );
+
+
+    void proj_curv_main(Vector3 old_u, Vector3 old_v,
+               float old_ku, float old_kuv, float old_kv,
+                Vector3 new_u, Vector3 new_v,
+               ref float new_ku, ref float new_kuv, ref float new_kv)
+    {
+        float u1 = Vector3.Dot(new_u, old_u);
+        float v1 = Vector3.Dot(new_u, old_v);
+        float u2 = Vector3.Dot(new_v, old_u);
+        float v2 = Vector3.Dot(new_v, old_v);
+        new_ku = old_ku * u1 * u1 + old_kuv * (2.0f * u1 * v1) + old_kv * v1 * v1;
+        new_kuv = old_ku * u1 * u2 + old_kuv * (u1 * v2 + u2 * v1) + old_kv * v1 * v2;
+        new_kv = old_ku * u2 * u2 + old_kuv * (2.0f * u2 * v2) + old_kv * v2 * v2;
+    }
+
+
     // Start is called before the first frame update
     void Start()
     {
+
         MeshFilter mf = GetComponent<MeshFilter>();
-        mf.sharedMesh = need_curvatures(mf.sharedMesh);
+        // mf.sharedMesh = need_curvatures(mf.sharedMesh);
+
+        Mesh mesh = mf.sharedMesh;
+        Mesh newMesh = new Mesh();
+        newMesh.vertices = mesh.vertices;
+        newMesh.triangles = mesh.triangles;
+        newMesh.normals = mesh.normals;
+
+        float[] curvature0 = new float[mesh.vertices.Length];
+        float[] curvature1 = new float[mesh.vertices.Length];
+        float[] dir1_x = new float[mesh.vertices.Length];
+        float[] dir1_y = new float[mesh.vertices.Length];
+        float[] dir1_z = new float[mesh.vertices.Length];
+        float[] dir2_x = new float[mesh.vertices.Length];
+        float[] dir2_y = new float[mesh.vertices.Length];
+        float[] dir2_z = new float[mesh.vertices.Length];
+
+        float[] vertice_x = new float[mesh.vertices.Length];
+        float[] vertice_y = new float[mesh.vertices.Length];
+        float[] vertice_z = new float[mesh.vertices.Length];
+        Vector4[] tangents = mesh.tangents;
+        Vector3[] normals = mesh.normals;
+        Vector3[] binormals = new Vector3[mesh.vertices.Length];
+        for (int i = 0; i < mesh.vertices.Length; i++)
+        {
+            vertice_x[i] = newMesh.vertices[i].x;
+            vertice_y[i] = newMesh.vertices[i].y;
+            vertice_z[i] = newMesh.vertices[i].z;
+
+            binormals[i] = Vector3.Cross(normals[i], tangents[i]) * tangents[i].w;
+        }
+
+        // get main curvature
+        CalculateDirectionalCurvature(mesh.vertices.Length,
+         vertice_x, vertice_y, vertice_z,
+         dir1_x, dir1_y, dir1_z,
+         dir2_x, dir2_y, dir2_z,
+         curvature0, curvature1, mesh.triangles.Length / 3, mesh.triangles);
+
+        // transfer to tangent and binormal coord
+        Color[] curvature = new Color[mesh.vertices.Length];
+        for (int i = 0; i < mesh.vertices.Length; i++)
+        {
+            float c0 = 0, c1 = 0, c2 = 0;
+            proj_curv_main(new Vector3(dir1_x[i], dir1_y[i], dir1_z[i]), new Vector3(dir2_x[i], dir2_y[i], dir2_z[i])
+            , curvature0[i], 0, curvature1[i], tangents[i], binormals[i], ref c0, ref c1, ref c2);
+
+            curvature[i].r = c0;
+            curvature[i].g = c1;
+            curvature[i].b = c2;
+            curvature[i].a = (curvature0[i] + curvature1[i]) * 0.5f;
+
+        }
+
+        newMesh.colors = curvature;
+
+        Debug.Log("Done.\n");
+
+        mf.sharedMesh = newMesh;
     }
 
     void GetDirCurv(Mesh mesh)
@@ -414,9 +587,9 @@ public class CalculateDirectionalCurvature : MonoBehaviour
         Color[] colors = new Color[vertices.Length];
         for (int i = 0; i < vertices.Length; i++)
         {
-            colors[i].r = (curv1[i] * 0.5f + curv2[i] * 0.5f)*0.1f;
-            colors[i].g = (curv1[i] * 0.5f + curv2[i] * 0.5f)*0.1f;
-            colors[i].b = (curv1[i] * 0.5f + curv2[i] * 0.5f)*0.1f;
+            colors[i].r = (curv1[i] * 0.5f + curv2[i] * 0.5f) * 0.1f;
+            colors[i].g = (curv1[i] * 0.5f + curv2[i] * 0.5f) * 0.1f;
+            colors[i].b = (curv1[i] * 0.5f + curv2[i] * 0.5f) * 0.1f;
         }
         newMesh.colors = colors;
 
